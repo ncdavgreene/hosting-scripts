@@ -51,7 +51,7 @@ update_dns() {
 # Function: Check the health of the primary server
 check_health() {
   # Always hit the PRIMARY box, even if DNS is on the fail‑over
-  curl --silent --fail --max-time 5 \
+  if curl --silent --fail --max-time 5 \
        --resolve "${DOMAIN}:443:${MAIN_IP}" \
        "https://${DOMAIN}/health" > /dev/null; then
     return 0  # Healthy
