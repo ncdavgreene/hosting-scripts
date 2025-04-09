@@ -25,7 +25,7 @@ CF_RECORD_ID="your_record_id_here"            # e.g., "i9j0k1l2..."
 DOMAIN="yourdomain.com"                       # e.g., "example.com"
 MAIN_IP="192.168.1.100"                       # Primary server IP
 FAILOVER_IP="34.56.78.90"                     # Failover server IP
-HEALTHCHECK_URL="https://yourdomain.com/check.txt" # URL to check (adjust the endpoint)
+HEALTHCHECK_URL="https://yourdomain.com/health" # URL to check (adjust the endpoint)
 
 # Optional: DNS resolver to query the current DNS record (Cloudflare recommends 1.1.1.1)
 DNS_RESOLVER="1.1.1.1"
@@ -50,8 +50,10 @@ update_dns() {
 
 # Function: Check the health of the primary server
 check_health() {
-  # Try to fetch the HEALTHCHECK_URL with a timeout of 5 seconds.
-  if curl --silent --fail --max-time 5 "$HEALTHCHECK_URL" > /dev/null; then
+  # Always hit the PRIMARY box, even if DNS is on the fail‑over
+  curl --silent --fail --max-time 5 \
+       --resolve "${DOMAIN}:443:${MAIN_IP}" \
+       "https://${DOMAIN}/health" > /dev/null; then
     return 0  # Healthy
   else
     return 1  # Unhealthy
